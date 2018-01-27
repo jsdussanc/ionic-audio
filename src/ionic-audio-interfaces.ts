@@ -1,3 +1,5 @@
+import { Observable } from "rxjs/Observable";
+
 
 /**
  * Defines the audio provider contract
@@ -57,6 +59,28 @@ export interface IAudioTrack extends ITrackConstraint {
   stop();
   seekTo(time: number);
   destroy();
+  subscribe():Observable<any>;
+}
+
+/**
+ * Defines code to msg events 
+ * 
+ * @export
+ * @interface IAudioTrack
+ * @extends {ITrackConstraint}
+ */
+
+export const STATUS_MEDIA = {
+  MEDIA_NONE : 0,
+  MEDIA_STARTING : 1,
+  MEDIA_RUNNING : 2,
+  MEDIA_PAUSED : 3,
+  MEDIA_STOPPED : 4,
+  MEDIA_POSITION : 5,
+  MEDIA_DURATION_CHANGUE : 6,
+  MEDIA_PROGRESS : 6,
+  MEDIA_SUSPEND : 7,
+  MEDIA_ERROR : 9,
 }
 
 

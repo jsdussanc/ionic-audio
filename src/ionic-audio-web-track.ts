@@ -1,5 +1,7 @@
-import {IAudioTrack} from './ionic-audio-interfaces'; 
+import {IAudioTrack ,STATUS_MEDIA} from './ionic-audio-interfaces'; 
 import {Injectable, Optional} from '@angular/core';
+import {Observable} from 'rxjs/Observable';
+
 
 declare let window;
 window.AudioContext = window['AudioContext'] || window['webkitAudioContext'];
@@ -12,6 +14,7 @@ window.AudioContext = window['AudioContext'] || window['webkitAudioContext'];
  * @constructor
  * @implements {IAudioTrack}
  */
+
 @Injectable()
 export class WebAudioTrack implements IAudioTrack {
   private audio: HTMLAudioElement;
@@ -23,6 +26,14 @@ export class WebAudioTrack implements IAudioTrack {
   private _id: number;
   private _isLoading: boolean;
   private _hasLoaded: boolean;
+  private _observer: Observable<any>;
+  private _nextCallbackObvserver = function(status){
+    //not subscribe yet
+  };
+  private _completeCallbackObvserver = function(){
+    //not subscribe yet
+  };;
+
   constructor(public src: string, @Optional() public preload: string = 'none') {
     // audio context not needed for now
     // @Optional() private ctx: AudioContext = undefined
@@ -37,24 +48,44 @@ export class WebAudioTrack implements IAudioTrack {
     this.audio.preload = this.preload;
     //this.audio.controls = true;
     //this.audio.autoplay = false;
-    
-    this.audio.addEventListener("timeupdate", (e) => { this.onTimeUpdate(e); }, false);
+    this._observer = new Observable<any>(observer => {
+      this._nextCallbackObvserver = (status) => {
+        this._nextCallbackObvserver(status);
+      };
+
+      this._completeCallbackObvserver = () => {
+        observer.complete()
+      }
+    });
+
+    this.audio.addEventListener("timeupdate", (e) => { 
+      this.onTimeUpdate(e);
+      this._nextCallbackObvserver(STATUS_MEDIA.MEDIA_POSITION);
+    }, false);
     
     this.audio.addEventListener("error", (err) => {
       console.log(`Audio error => track ${this.src}`, err);
       this.isPlaying = false;
+      this._nextCallbackObvserver(STATUS_MEDIA.MEDIA_ERROR);
     }, false);
     
     this.audio.addEventListener("canplay", () => {
       this._isLoading = false;
       this._hasLoaded = true;
+      this._nextCallbackObvserver(STATUS_MEDIA.MEDIA_STARTING);
     }, false);
     
     this.audio.addEventListener("playing", () => {
       console.log(`Playing track ${this.src}`);
       this.isFinished = false;
       this.isPlaying = true;
+      this._nextCallbackObvserver(STATUS_MEDIA.MEDIA_RUNNING);
     }, false);
+
+    this.audio.addEventListener("pause", (event) =>{ 
+      this._nextCallbackObvserver(STATUS_MEDIA.MEDIA_PAUSED);
+    }, false); 
+
     
     this.audio.addEventListener("ended", () => {
       this.isPlaying = false;
@@ -62,13 +93,25 @@ export class WebAudioTrack implements IAudioTrack {
       this._progress = 0;
       this._completed = 0;
       this._hasLoaded = false;
+      this._nextCallbackObvserver(STATUS_MEDIA.MEDIA_STOPPED);
       //this.destroy();
+      //observer.complete();
       console.log('Finished playback');
     }, false);
     
     this.audio.addEventListener("durationchange", (e:any) => {    
       this._duration = e.target.duration;
-    }, false);  
+      this._nextCallbackObvserver(STATUS_MEDIA.MEDIA_DURATION_CHANGUE);
+    }, false);
+    
+    this.audio.addEventListener("progress", (event) => { 
+      this._nextCallbackObvserver(STATUS_MEDIA.MEDIA_PROGRESS);
+    }, false); 
+
+    this.audio.addEventListener("suspend", (event) =>{ 
+      this._nextCallbackObvserver(STATUS_MEDIA.MEDIA_SUSPEND);
+    }, false); 
+    
   }
   
   private onTimeUpdate(e: Event) {
@@ -185,6 +228,16 @@ export class WebAudioTrack implements IAudioTrack {
     return this._hasLoaded;
   }
   
+  /**
+   * Gets observer for events of media
+   * @property subscribe
+   * @readonly
+   * @type {Observable}
+    */
+
+  subscribe(): Observable<any>{
+    return this._observer;
+  }
   
   /**
    * Plays current track

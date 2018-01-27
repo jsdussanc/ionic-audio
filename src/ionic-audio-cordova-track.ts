@@ -1,5 +1,6 @@
 import {IAudioTrack} from './ionic-audio-interfaces';
 import {Injectable, NgZone} from '@angular/core';
+import {Observable} from 'rxjs/Observable';
 
 declare let Media: any;
 
@@ -24,6 +25,13 @@ export class CordovaAudioTrack implements IAudioTrack {
   private _hasLoaded: boolean;
   private _timer: any;
   private _ngZone: NgZone;
+  private _observer: Observable<any>;
+  private _nextCallbackObvserver = function(status){
+    //not subscribe yet
+  };
+  private _completeCallbackObvserver = function(){
+    //not subscribe yet
+  };;
 
   constructor(public src: string) {
     if (window['cordova'] === undefined || window['Media'] === undefined) {
@@ -35,18 +43,29 @@ export class CordovaAudioTrack implements IAudioTrack {
   }
 
   private createAudio() {
+    this._observer = new Observable<any>(observer => {
+      this._nextCallbackObvserver = (status) => {
+        observer.next(status);
+      };
+
+      this._completeCallbackObvserver = () => {
+        observer.complete()
+      }
+    });
+
     this.audio = new Media(this.src, () => {
-       console.log('Finished playback');
-       this.stopTimer();
-       this._ngZone.run(()=>{
+      console.log('Finished playback');
+      this.stopTimer();
+      this._ngZone.run(()=>{
         this._progress = 0;
         this._completed = 0;
         this._hasLoaded = false;
         this.isFinished = true;
         this.isPlaying = false;
-       });
-       this.destroy();  // TODO add parameter to control whether to release audio on stop or finished
+      });
+      this.destroy();  // TODO add parameter to control whether to release audio on stop or finished
     }, (err) => {
+      this._nextCallbackObvserver(Media.MEDIA_ERROR);
       console.log(`Audio error => track ${this.src}`, err);
     }, (status) => {
       this._ngZone.run(()=>{
@@ -68,6 +87,7 @@ export class CordovaAudioTrack implements IAudioTrack {
             break;
         }
       });
+      this._nextCallbackObvserver(status);
     });
   }
 
@@ -192,6 +212,17 @@ export class CordovaAudioTrack implements IAudioTrack {
     return this._hasLoaded;
   }
 
+  /**
+   * Gets observer for events of media
+   * @property subscribe
+   * @readonly
+   * @type {Observable}
+    */
+
+  subscribe(): Observable<any>{
+    return this._observer;
+  }
+  
   /**
  * Plays current track
  *

@@ -1,4 +1,4 @@
-import {ITrackConstraint, IAudioTrack} from './ionic-audio-interfaces'; 
+import {ITrackConstraint, IAudioTrack, STATUS_MEDIA} from './ionic-audio-interfaces'; 
 import {AudioProvider} from './ionic-audio-providers'; 
 import {WebAudioTrack} from './ionic-audio-web-track'; 
 import {CordovaAudioTrack} from './ionic-audio-cordova-track'; 
@@ -14,7 +14,7 @@ import {Component, DoCheck, OnChanges, SimpleChanges, EventEmitter, Output, Inpu
  * ## Usage
  * 
  * ````
- *   <audio-track #audio [track]="myTrack" (onFinish)="onTrackFinished($event)">
+ *   <audio-track #audio [track]="myTrack" (onFinish)="onTrackFinished($event)" (onEventRecibe)=fnOnEventRecibe($event)>
  *   ...
  *   </audio-track>
  * ````
@@ -53,6 +53,15 @@ export class AudioTrackComponent implements OnChanges, DoCheck {
    */
   @Output() onFinish = new EventEmitter<ITrackConstraint>();
   
+  /**
+   * Output property expects an event handler to be notified whenever playback finishes
+   * 
+   * @property onEventRecibe
+   * @type {EventEmitter}
+   */
+
+  @Output() onEventRecibe = new EventEmitter<number>();
+  
   private _audioTrack: IAudioTrack;
   
   constructor(private _audioProvider: AudioProvider) {}
@@ -61,7 +70,8 @@ export class AudioTrackComponent implements OnChanges, DoCheck {
     if (!this.track) return;
 
     if (!(this.track instanceof WebAudioTrack) && !(this.track instanceof CordovaAudioTrack)) {
-      this._audioTrack = this._audioProvider.create(this.track); 
+      this._audioTrack = this._audioProvider.create(this.track);
+      this._audioTrack.subscribe().subscribe(this.onEventRecibe.emit);
     } else {
       if (this._audioTrack) {
         Object.assign(this._audioTrack, this.track);
@@ -171,6 +181,7 @@ export class AudioTrackComponent implements OnChanges, DoCheck {
 
     if (this._audioTrack && this._audioTrack.isPlaying) this._audioTrack.stop();
     this._audioTrack =  this._audioProvider.create(changes.track.currentValue);
+    this._audioTrack.subscribe().subscribe(this.onEventRecibe.emit);
 
     console.log("ngOnChanges -> new audio track", this._audioTrack);
     

@@ -19,6 +19,7 @@ export class CordovaAudioTrack implements IAudioTrack {
   public isPlaying: boolean = false;
   public isFinished: boolean = false;
   private _progress: number = 0;
+  private _progressEventSend :boolean =false;
   private _completed: number = 0;
   private _duration: number;
   private _id: number;
@@ -104,6 +105,10 @@ export class CordovaAudioTrack implements IAudioTrack {
             if (position > -1) {
               this._progress = Math.round(position*100)/100;
               this._completed = this._duration > 0 ? Math.round(this._progress / this._duration * 100)/100 : 0;
+              if (this._duration > 0 && this._progress > 0 && !this._progressEventSend){
+                this._progressEventSend = true;
+                this._nextCallbackObvserver({value: this.audio, status:STATUS_MEDIA.MEDIA_PROGRESS_ENABLE}); 
+              }
             }
         }), (e) => {
             console.log("Error getting position", e);

@@ -82,6 +82,8 @@ export enum STATUS_MEDIA  {
   MEDIA_SEEKTO = 8,
   MEDIA_ERROR = 9,
   MEDIA_DURATION_CHANGUE = 10,
+  MEDIA_PROGRESS_ENABLE = 11,
+
 }
 
 export interface Imessage {

@@ -70,17 +70,23 @@ export interface IAudioTrack extends ITrackConstraint {
  * @extends {ITrackConstraint}
  */
 
-export const STATUS_MEDIA = {
-  MEDIA_NONE : 0,
-  MEDIA_STARTING : 1,
-  MEDIA_RUNNING : 2,
-  MEDIA_PAUSED : 3,
-  MEDIA_STOPPED : 4,
-  MEDIA_POSITION : 5,
-  MEDIA_DURATION_CHANGUE : 6,
-  MEDIA_PROGRESS : 6,
-  MEDIA_SUSPEND : 7,
-  MEDIA_ERROR : 9,
+export enum STATUS_MEDIA  {
+  MEDIA_NONE = 0,
+  MEDIA_STARTING = 1,
+  MEDIA_RUNNING = 2,
+  MEDIA_PAUSED = 3,
+  MEDIA_STOPPED = 4,
+  MEDIA_POSITION = 5,
+  MEDIA_PROGRESS = 6,
+  MEDIA_SUSPEND = 7,
+  MEDIA_SEEKTO = 8,
+  MEDIA_ERROR = 9,
+  MEDIA_DURATION_CHANGUE = 10,
+}
+
+export interface Imessage {
+  status: STATUS_MEDIA;
+  value: any;
 }
 
 

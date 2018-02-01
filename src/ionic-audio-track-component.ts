@@ -1,4 +1,4 @@
-import {ITrackConstraint, IAudioTrack, STATUS_MEDIA} from './ionic-audio-interfaces'; 
+import {ITrackConstraint, IAudioTrack, STATUS_MEDIA, Imessage} from './ionic-audio-interfaces'; 
 import {AudioProvider} from './ionic-audio-providers'; 
 import {WebAudioTrack} from './ionic-audio-web-track'; 
 import {CordovaAudioTrack} from './ionic-audio-cordova-track'; 
@@ -60,7 +60,7 @@ export class AudioTrackComponent implements OnChanges, DoCheck {
    * @type {EventEmitter}
    */
 
-  @Output() onEventRecibe = new EventEmitter<number>();
+  @Output() onEventRecibe = new EventEmitter<Imessage>();
   
   private _audioTrack: IAudioTrack;
   
@@ -71,7 +71,11 @@ export class AudioTrackComponent implements OnChanges, DoCheck {
 
     if (!(this.track instanceof WebAudioTrack) && !(this.track instanceof CordovaAudioTrack)) {
       this._audioTrack = this._audioProvider.create(this.track);
-      this._audioTrack.subscribe().subscribe(this.onEventRecibe.emit);
+      this._audioTrack.subscribe().subscribe(
+        (value) => { console.log("AudioTrackComponent:subscribe:onNext:", value); this.onEventRecibe.emit(value) },
+        (error) => { console.log("AudioTrackComponent:subscribe:onError:", error) },
+        () => { console.log("AudioTrackComponent:subscribe:complete:"); }
+      );
     } else {
       if (this._audioTrack) {
         Object.assign(this._audioTrack, this.track);
@@ -181,8 +185,11 @@ export class AudioTrackComponent implements OnChanges, DoCheck {
 
     if (this._audioTrack && this._audioTrack.isPlaying) this._audioTrack.stop();
     this._audioTrack =  this._audioProvider.create(changes.track.currentValue);
-    this._audioTrack.subscribe().subscribe(this.onEventRecibe.emit);
-
+    this._audioTrack.subscribe().subscribe(
+      (value) => { console.log("AudioTrackComponent:subscribe:onNext:", value); this.onEventRecibe.emit(value) },
+      (error) => { console.log("AudioTrackComponent:subscribe:onError:", error) },
+      () => { console.log("AudioTrackComponent:subscribe:complete:"); }
+    );
     console.log("ngOnChanges -> new audio track", this._audioTrack);
     
     this.autoplay && this._audioTrack.play();

@@ -1,6 +1,7 @@
-import {IAudioTrack} from './ionic-audio-interfaces';
+import {IAudioTrack, STATUS_MEDIA, Imessage} from './ionic-audio-interfaces';
 import {Injectable, NgZone} from '@angular/core';
 import {Observable} from 'rxjs/Observable';
+
 
 declare let Media: any;
 
@@ -25,8 +26,8 @@ export class CordovaAudioTrack implements IAudioTrack {
   private _hasLoaded: boolean;
   private _timer: any;
   private _ngZone: NgZone;
-  private _observer: Observable<any>;
-  private _nextCallbackObvserver = function(status){
+  private _observer: Observable<Imessage>;
+  private _nextCallbackObvserver = function(message: Imessage){
     //not subscribe yet
   };
   private _completeCallbackObvserver = function(){
@@ -43,9 +44,9 @@ export class CordovaAudioTrack implements IAudioTrack {
   }
 
   private createAudio() {
-    this._observer = new Observable<any>(observer => {
-      this._nextCallbackObvserver = (status) => {
-        observer.next(status);
+    this._observer = new Observable<Imessage>(observer => {
+      this._nextCallbackObvserver = (message: Imessage) => {
+        observer.next(message);
       };
 
       this._completeCallbackObvserver = () => {
@@ -65,10 +66,11 @@ export class CordovaAudioTrack implements IAudioTrack {
       });
       this.destroy();  // TODO add parameter to control whether to release audio on stop or finished
     }, (err) => {
-      this._nextCallbackObvserver(Media.MEDIA_ERROR);
+      this._nextCallbackObvserver({value: err, status:STATUS_MEDIA.MEDIA_ERROR});
       console.log(`Audio error => track ${this.src}`, err);
     }, (status) => {
       this._ngZone.run(()=>{
+        console.log(`CordovaAudioTrack:satatus:`,status);
         switch (status) {
           case Media.MEDIA_STARTING:
             console.log(`Loaded track ${this.src}`);
@@ -87,7 +89,7 @@ export class CordovaAudioTrack implements IAudioTrack {
             break;
         }
       });
-      this._nextCallbackObvserver(status);
+      this._nextCallbackObvserver({value: this.audio, status:status});
     });
   }
 
@@ -272,6 +274,7 @@ export class CordovaAudioTrack implements IAudioTrack {
   seekTo(time: number) {
     // Cordova Media reports duration and progress as seconds, so we need to multiply by 1000
     this.audio.seekTo(time*1000);
+    this._nextCallbackObvserver({value: time, status:STATUS_MEDIA.MEDIA_SEEKTO});
   }
 
   /**

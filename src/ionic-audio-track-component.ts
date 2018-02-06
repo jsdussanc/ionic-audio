@@ -184,16 +184,18 @@ export class AudioTrackComponent implements OnChanges, DoCheck {
     console.log("ngOnChanges", changes);
     if (changes.track.firstChange) return;
     let trackPlaying = this._audioProvider.tracks.find(item => { return item.isPlaying })
-    if (trackPlaying.src == changes.track.currentValue.src) return; // prevent play again
+    if (trackPlaying && trackPlaying.src == changes.track.currentValue.src) return; // prevent play again
     if (this._audioTrack && this._audioTrack.isPlaying) this._audioTrack.stop();
-    this._audioTrack =  this._audioProvider.create(changes.track.currentValue);
-    this._audioTrack.subscribe().subscribe(
-      (value) => { console.log("AudioTrackComponent:subscribe:onNext:", value); this.onEventRecibe.emit(value) },
-      (error) => { console.log("AudioTrackComponent:subscribe:onError:", error) },
-      () => { console.log("AudioTrackComponent:subscribe:complete:"); }
-    );
-    console.log("ngOnChanges -> new audio track", this._audioTrack);
-    
-    this.autoplay && this._audioTrack.play();
+    if (changes.track && changes.track.currentValue && changes.track.currentValue.src) {
+      this._audioTrack = this._audioProvider.create(changes.track.currentValue);
+      this._audioTrack.subscribe().subscribe(
+        (value) => { console.log("AudioTrackComponent:subscribe:onNext:", value); this.onEventRecibe.emit(value) },
+        (error) => { console.log("AudioTrackComponent:subscribe:onError:", error) },
+        () => { console.log("AudioTrackComponent:subscribe:complete:"); }
+      );
+      console.log("ngOnChanges -> new audio track", this._audioTrack);
+
+      this.autoplay && this._audioTrack.play();
+    }
   }
 }

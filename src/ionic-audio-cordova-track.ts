@@ -34,6 +34,7 @@ export class CordovaAudioTrack implements IAudioTrack {
   private _completeCallbackObvserver = function(){
     //not subscribe yet
   };;
+  private _listPosition = [0 ,0 ,0];
 
   constructor(public src: string) {
     if (window['cordova'] === undefined || window['Media'] === undefined) {
@@ -42,6 +43,11 @@ export class CordovaAudioTrack implements IAudioTrack {
     };
     this._ngZone = new NgZone({enableLongStackTrace: false});
     this.createAudio();
+    document.addEventListener("resume", ()=>{this.detectPaused();
+       setTimeout(this.detectPaused(),400);
+      setTimeout(this.detectPaused(),800);
+      setTimeout(this.detectPaused(),12000);
+      this.startTimer();}, false);
   }
 
   private createAudio() {
@@ -104,6 +110,7 @@ export class CordovaAudioTrack implements IAudioTrack {
       this.audio.getCurrentPosition((position) => this._ngZone.run(()=>{
             if (position > -1) {
               this._progress = Math.round(position*100)/100;
+              this.detectPaused();
               this._completed = this._duration > 0 ? Math.round(this._progress / this._duration * 100)/100 : 0;
               if (this._duration > 0 && this._progress > 0 && !this._progressEventSend){
                 this._progressEventSend = true;
@@ -119,6 +126,16 @@ export class CordovaAudioTrack implements IAudioTrack {
 
   private stopTimer() {
     clearInterval(this._timer);
+  }
+  
+  private detectPaused(){
+    let lastPosition = this._progress;
+    if (lastPosition != 0 && this._listPosition[0] == lastPosition && this._listPosition[1] == lastPosition && this._listPosition[2] == lastPosition){
+      this.pause()
+    }
+    this._listPosition[0] = this._listPosition[1];
+    this._listPosition[1] = this._listPosition[2];
+    this._listPosition[2] = lastPosition;
   }
 
   /** public members */

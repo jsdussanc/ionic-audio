@@ -43,11 +43,12 @@ export class CordovaAudioTrack implements IAudioTrack {
     };
     this._ngZone = new NgZone({enableLongStackTrace: false});
     this.createAudio();
-    document.addEventListener("resume", ()=>{this.detectPaused();
-      setTimeout(()=>{this.detectPaused()},400);
-      setTimeout(()=>{this.detectPaused()},800);
-      setTimeout(()=>{this.detectPaused()},12000);
-      this.startTimer();}, false);
+    // not necesari with cordova-background-mode
+    // document.addEventListener("resume", ()=>{this.detectPaused();
+    //   setTimeout(()=>{this.detectPaused()},400);
+    //   setTimeout(()=>{this.detectPaused()},800);
+    //   setTimeout(()=>{this.detectPaused()},12000);
+    //   this.startTimer();}, false);
   }
 
   private createAudio() {

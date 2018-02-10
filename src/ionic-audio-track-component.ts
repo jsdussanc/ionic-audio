@@ -101,7 +101,7 @@ export class AudioTrackComponent implements OnChanges, DoCheck {
     if (!this._audioTrack) return;
 
     this._audioTrack.pause();
-    this._audioProvider.current = undefined;
+    //this._audioProvider.current = undefined;
   }
 
   toggle() {
@@ -199,7 +199,7 @@ export class AudioTrackComponent implements OnChanges, DoCheck {
       );
       console.log("ngOnChanges -> new audio track", this._audioTrack);
 
-      this.autoplay && this._audioTrack.play();
+      this.autoplay && this._audioProvider.play(this._audioTrack.id);
     }
   }
 }

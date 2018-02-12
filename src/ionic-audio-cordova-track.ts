@@ -275,6 +275,7 @@ export class CordovaAudioTrack implements IAudioTrack {
   pause() {
     if (!this.isPlaying) return;
     console.log(`Pausing track ${this.src}`);
+    this.isPlaying = false;
     this.audio.pause();
     this.stopTimer();
   }

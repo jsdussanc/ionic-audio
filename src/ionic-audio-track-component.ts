@@ -177,6 +177,7 @@ export class AudioTrackComponent implements OnChanges, DoCheck {
     // track has stopped, trigger finish event
     if (this._audioTrack && this._audioTrack.isFinished) {
       this.onFinish.emit(this.track);
+      this._audioTrack.isFinished = false; //prevent send more events onFinish
     }
   }
 

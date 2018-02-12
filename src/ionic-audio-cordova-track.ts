@@ -262,7 +262,7 @@ export class CordovaAudioTrack implements IAudioTrack {
       console.log(`Loading track ${this.src}`);
       this._isLoading = true;
     }
-
+    this.isFinished = false;
     this.audio.play();
     this.startTimer();
   }

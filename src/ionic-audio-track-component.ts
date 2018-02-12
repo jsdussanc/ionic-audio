@@ -175,7 +175,7 @@ export class AudioTrackComponent implements OnChanges, DoCheck {
 
   ngDoCheck() {
     // track has stopped, trigger finish event
-    if (this._audioTrack && this._audioTrack.isFinished) {
+    if (this._audioTrack && this._audioTrack.isFinished && !this._audioTrack.isPlaying && !this._audioTrack.isLoading) {
       this.onFinish.emit(this.track);
       this._audioTrack.isFinished = false; //prevent send more events onFinish
     }
